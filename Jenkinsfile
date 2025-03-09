@@ -30,6 +30,16 @@ pipeline {
             }
         }
 
+        
+
+        stage('Build image') {
+            steps {
+                script {
+                    app = docker.build("$DOCKER_IMAGE")
+                }
+            }
+        }
+
         stage('Run Docker Container for Testing') {
             steps {
                 sh 'docker run -d --name test-container -p 8088:8088 $DOCKER_IMAGE'
@@ -44,15 +54,7 @@ pipeline {
                 sh 'docker rm test-container'
             }
         }
-
-        stage('Build image') {
-            steps {
-                script {
-                    app = docker.build("$DOCKER_IMAGE")
-                }
-            }
-        }
-
+        
         stage('Push image') {
             steps {
                 script {
