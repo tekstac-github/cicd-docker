@@ -5,8 +5,6 @@ pipeline {
         DOCKER_IMAGE = 'jenkinsci-cd/webserver'
         DOCKER_REGISTRY = 'https://localhost:5000'
         DOCKER_CREDENTIALS = 'docker-credentials'
-        TOMCAT_PATH = '/var/lib/tomcat9'
-        WAR_FILE = 'taxiapp*.war'
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${PATH}"
     }
@@ -21,7 +19,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    /opt/maven/bin/mvn clean install -Dmaven.test.skip=true
+                    mvn clean install -Dmaven.test.skip=true
                 '''
             }
         }
