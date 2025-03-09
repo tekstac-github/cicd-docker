@@ -1,6 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'jenkinsci-cd/webserver'
+        DOCKER_REGISTRY = 'https://localhost:5000'
+        DOCKER_CREDENTIALS = 'docker-credentials'
+        TOMCAT_PATH = '/var/lib/tomcat9'
+        WAR_FILE = 'taxiapp*.war'
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+        PATH = "${JAVA_HOME}/bin:${PATH}"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -24,14 +34,14 @@ pipeline {
 
         stage('Run Docker Container for Testing') {
             steps {
-                sh 'docker run -d --name test-container -p 8080:8080 jenkinsci-cd/webserver'
+                sh 'docker run -d --name test-container -p 8088:8088 $DOCKER_IMAGE'
             }
         }
 
         stage('Test Docker Container') {
             steps {
                 sh 'sleep 10'
-                sh 'curl -f http://localhost:8080 || exit 1'
+                sh 'curl -f http://localhost:8088 || exit 1'
                 sh 'docker stop test-container'
                 sh 'docker rm test-container'
             }
@@ -40,7 +50,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    app = docker.build("jenkinsci-cd/webserver")
+                    app = docker.build("$DOCKER_IMAGE")
                 }
             }
         }
@@ -48,7 +58,7 @@ pipeline {
         stage('Push image') {
             steps {
                 script {
-                    docker.withRegistry('https://localhost:5000', 'docker-credentials') {
+                    docker.withRegistry("$DOCKER_REGISTRY", "$DOCKER_CREDENTIALS") {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
@@ -58,7 +68,7 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 80:80 localhost:5000/jenkinsci-cd/webserver &'
+                sh 'docker run -d -p 80:80 $DOCKER_REGISTRY/$DOCKER_IMAGE &'
             }
         }
     }
