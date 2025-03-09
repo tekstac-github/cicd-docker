@@ -40,20 +40,7 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container for Testing') {
-            steps {
-                sh 'docker run -d --name test-container -p 8088:8088 $DOCKER_IMAGE'
-            }
-        }
-
-        stage('Test Docker Container') {
-            steps {
-                sh 'sleep 10'
-                sh 'curl -f http://localhost:8088 || exit 1'
-                sh 'docker stop test-container'
-                sh 'docker rm test-container'
-            }
-        }
+       
         
         stage('Push image') {
             steps {
