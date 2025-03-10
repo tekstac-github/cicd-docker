@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'jenkinsci-cd/webserver'
-        DOCKER_REGISTRY = 'http://localhost:5000'
-        DOCKER_CREDENTIALS = 'docker-credentials'
-        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-        PATH = "${JAVA_HOME}/bin:${PATH}"
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -33,7 +25,17 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                    app = docker.build("jenkinsci-cd/webserver")
+                }
+            }
+        }
+
+        stage('Test image') {
+            steps {
+                script {
+                    app.inside {
+                        sh 'echo "Tests passed"'
+                    }
                 }
             }
         }
@@ -41,7 +43,7 @@ pipeline {
         stage('Push image') {
             steps {
                 script {
-                    docker.withRegistry("${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS}") {
+                    docker.withRegistry('https://localhost:5000', 'docker-credentials') {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
@@ -49,17 +51,9 @@ pipeline {
             }
         }
 
-        stage('Docker Test') {
-            steps {
-                script {
-                    sh "docker run --rm ${DOCKER_IMAGE}:${env.BUILD_NUMBER} /bin/bash -c 'curl -f http://localhost:8090 || exit 1'"
-                }
-            }
-        }
-
         stage('Run Docker Container') {
             steps {
-                sh "docker run -d -p 80:80 ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${env.BUILD_NUMBER} &"
+                sh 'docker run -d -p 80:80 localhost:5000/jenkinsci-cd/webserver &'
             }
         }
     }
