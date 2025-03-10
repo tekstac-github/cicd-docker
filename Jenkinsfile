@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "jenkinsci-cd/webserver"
+        DOCKER_REGISTRY = "https://localhost:5000"
+        DOCKER_CREDENTIALS = "docker-credentials"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -11,7 +17,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    mvn clean install -Dmaven.test.skip=true
+                    mvn clean install
                 '''
             }
         }
@@ -25,7 +31,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    app = docker.build("jenkinsci-cd/webserver")
+                    app = docker.build("${DOCKER_IMAGE}")
                 }
             }
         }
@@ -33,9 +39,15 @@ pipeline {
         stage('Test image') {
             steps {
                 script {
-                    app.inside {
-                        sh 'echo "Tests passed"'
-                    }
+                    sh '''#!/bin/bash
+                        docker stop test-webserver || true
+                        docker rm test-webserver || true
+                        docker run -d --name test-webserver -p 80:8090 ${DOCKER_IMAGE}
+                        sleep 10
+                        curl --fail http://localhost:80/ || exit 1
+                        docker stop test-webserver
+                        docker rm test-webserver
+                    '''
                 }
             }
         }
@@ -43,7 +55,7 @@ pipeline {
         stage('Push image') {
             steps {
                 script {
-                    docker.withRegistry('https://localhost:5000', 'docker-credentials') {
+                    docker.withRegistry("${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS}") {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
@@ -53,7 +65,11 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 80:80 localhost:5000/jenkinsci-cd/webserver &'
+                sh '''#!/bin/bash
+                    docker stop webserver || true
+                    docker rm webserver || true
+                    docker run -d --name webserver -p 80:8090 ${DOCKER_REGISTRY}/${DOCKER_IMAGE}
+                '''
             }
         }
     }
