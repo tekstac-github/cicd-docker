@@ -52,7 +52,7 @@ pipeline {
         stage('Docker Test') {
             steps {
                 script {
-                    sh "docker run --rm ${DOCKER_IMAGE}:${env.BUILD_NUMBER} /bin/bash -c 'curl -f http://localhost:80 || exit 1'"
+                    sh "docker run --rm ${DOCKER_IMAGE}:${env.BUILD_NUMBER} /bin/bash -c 'curl -f http://localhost:8090 || exit 1'"
                 }
             }
         }
