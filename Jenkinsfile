@@ -33,7 +33,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    def app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                    app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
