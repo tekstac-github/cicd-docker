@@ -17,21 +17,15 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''#!/bin/bash
-                    mvn clean install
+                   mvn clean package
                 '''
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.war'
             }
         }
 
         stage('Build image') {
             steps {
                 script {
-                    app = docker.build("${DOCKER_IMAGE}")
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
