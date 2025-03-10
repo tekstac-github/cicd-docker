@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "jenkinsci-cd/webserver"
-        DOCKER_REGISTRY = "https://localhost:5000"
+        DOCKER_REGISTRY = "localhost:5000"
         DOCKER_CREDENTIALS = "docker-credentials"
     }
 
@@ -48,7 +48,7 @@ pipeline {
         stage('Push image') {
             steps {
                 script {
-                    docker.withRegistry("${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS}") {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS}") {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
