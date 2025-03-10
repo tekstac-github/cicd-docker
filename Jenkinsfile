@@ -40,6 +40,8 @@ pipeline {
             steps {
                 script {
                     sh '''#!/bin/bash
+                        docker stop test-webserver || true
+                        docker rm test-webserver || true
                         docker run -d --name test-webserver -p 80:8090 ${DOCKER_IMAGE}
                         sleep 10
                         curl --fail http://localhost:80/ || exit 1
