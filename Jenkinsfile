@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'jenkinsci-cd/webserver'
-        DOCKER_REGISTRY = 'localhost:5000'
+        DOCKER_REGISTRY = 'http://localhost:5000'
         DOCKER_CREDENTIALS = 'docker-credentials'
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH = "${JAVA_HOME}/bin:${PATH}"
@@ -33,7 +33,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                    def app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
