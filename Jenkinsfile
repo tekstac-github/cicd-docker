@@ -30,22 +30,18 @@ pipeline {
             }
         }
 
-        
-
         stage('Build image') {
             steps {
                 script {
-                    def app = docker.build("$DOCKER_IMAGE")
+                    app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
 
-       
-        
         stage('Push image') {
             steps {
                 script {
-                    docker.withRegistry("$DOCKER_REGISTRY", "$DOCKER_CREDENTIALS") {
+                    docker.withRegistry("${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS}") {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
@@ -53,9 +49,17 @@ pipeline {
             }
         }
 
+        stage('Docker Test') {
+            steps {
+                script {
+                    sh "docker run --rm ${DOCKER_IMAGE}:${env.BUILD_NUMBER} /bin/bash -c 'curl -f http://localhost:80 || exit 1'"
+                }
+            }
+        }
+
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 80:80 $DOCKER_REGISTRY/$DOCKER_IMAGE &'
+                sh "docker run -d -p 80:80 ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${env.BUILD_NUMBER} &"
             }
         }
     }
