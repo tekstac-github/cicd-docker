@@ -57,7 +57,7 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 80:80 localhost:5000/jenkinsci-cd/webserver &'
+                sh 'docker run -d -p 80:8080 localhost:5000/jenkinsci-cd/webserver &'
             }
         }
     }
