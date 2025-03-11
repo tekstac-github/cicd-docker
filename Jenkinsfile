@@ -40,7 +40,7 @@ pipeline {
 
         stage('Test Docker Container') {
             steps {
-                sh 'docker run --rm localhost:5000/jenkinsci-cd/webserver /bin/bash -c "echo Container is running and tests passed"'
+                sh 'docker run --rm jenkinsci-cd/webserver /bin/bash -c "echo Container is running and tests passed"'
             }
         }
 
